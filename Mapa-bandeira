@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Interativo do Brasil</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f8ff;
+  }
+  #map-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+  .estado {
+    fill: #a0d6b4;
+    stroke: #2c3e50;
+    stroke-width: 0.5px;
+    transition: fill 0.3s;
+  }
+  .estado:hover {
+    fill: #66c2a5;
+    cursor: pointer;
+  }
+  #info-box {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    display: none;
+    max-width: 300px;
+    text-align: center;
+  }
+  #flag {
+    width: 200px;
+    height: auto;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  }
+  h2 {
+    margin: 5px 0;
+    color: #2c3e50;
+  }
+  .loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #3498db;
+  }
+</style>
+</head>
+<body>
+<div id="map-container">
+  <div class="loading">Carregando mapa...</div>
+</div>
+<div id="info-box">
+  <h2 id="estado-nome"></h2>
+  <img id="flag" alt="Bandeira do estado">
+</div>
+
+<script>
+const width = window.innerWidth;
+const height = window.innerHeight;
+
+const svg = d3.select("#map-container")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height);
+
+const projection = d3.geoMercator()
+  .center([-52, -15])
+  .scale(width)
+  .translate([width / 2, height / 2]);
+
+const path = d3.geoPath().projection(projection);
+
+const g = svg.append("g");
+
+// Dicionário de bandeiras dos estados
+const estadoBandeiras = {
+  'Acre': 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Bandeira_do_Acre.svg',
+  'Alagoas': 'https://upload.wikimedia.org/wikipedia/commons/8/88/Bandeira_de_Alagoas.svg',
+  'Amapá': 'https://upload.wikimedia.org/wikipedia/commons/0/0c/Bandeira_do_Amap%C3%A1.svg',
+  'Amazonas': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/Bandeira_do_Amazonas.svg',
+  'Bahia': 'https://upload.wikimedia.org/wikipedia/commons/2/28/Bandeira_da_Bahia.svg',
+  'Ceará': 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Bandeira_do_Cear%C3%A1.svg',
+  'Distrito Federal': 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Bandeira_do_Distrito_Federal_%28Brasil%29.svg',
+  'Espírito Santo': 'https://upload.wikimedia.org/wikipedia/commons/4/43/Bandeira_do_Esp%C3%ADrito_Santo.svg',
+  'Goiás': 'https://upload.wikimedia.org/wikipedia/commons/b/be/Flag_of_Goi%C3%A1s.svg',
+  'Maranhão': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Bandeira_do_Maranh%C3%A3o.svg',
+  'Mato Grosso': 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Bandeira_de_Mato_Grosso.svg',
+  'Mato Grosso do Sul': 'https://upload.wikimedia.org/wikipedia/commons/6/64/Bandeira_de_Mato_Grosso_do_Sul.svg',
+  'Minas Gerais': 'https://upload.wikimedia.org/wikipedia/commons/f/f4/Bandeira_de_Minas_Gerais.svg',
+  'Pará': 'https://upload.wikimedia.org/wikipedia/commons/0/02/Bandeira_do_Par%C3%A1.svg',
+  'Paraíba': 'https://upload.wikimedia.org/wikipedia/commons/b/bb/Bandeira_da_Para%C3%ADba.svg',
+  'Paraná': 'https://upload.wikimedia.org/wikipedia/commons/9/93/Bandeira_do_Paran%C3%A1.svg',
+  'Pernambuco': 'https://upload.wikimedia.org/wikipedia/commons/5/59/Bandeira_de_Pernambuco.svg',
+  'Piauí': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Bandeira_do_Piau%C3%AD.svg',
+  'Rio de Janeiro': 'https://upload.wikimedia.org/wikipedia/commons/7/73/Bandeira_do_estado_do_Rio_de_Janeiro.svg',
+  'Rio Grande do Norte': 'https://upload.wikimedia.org/wikipedia/commons/3/30/Bandeira_do_Rio_Grande_do_Norte.svg',
+  'Rio Grande do Sul': 'https://upload.wikimedia.org/wikipedia/commons/6/63/Bandeira_do_Rio_Grande_do_Sul.svg',
+  'Rondônia': 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Bandeira_de_Rond%C3%B4nia.svg',
+  'Roraima': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Bandeira_de_Roraima.svg',
+  'Santa Catarina': 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Bandeira_de_Santa_Catarina.svg',
+  'São Paulo': 'https://upload.wikimedia.org/wikipedia/commons/2/2b/Bandeira_do_estado_de_S%C3%A3o_Paulo.svg',
+  'Sergipe': 'https://upload.wikimedia.org/wikipedia/commons/b/be/Bandeira_de_Sergipe.svg',
+  'Tocantins': 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Bandeira_do_Tocantins.svg'
+};
+
+// Carrega os dados do mapa do Brasil
+d3.json("https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson").then((brasil) => {
+  g.selectAll("path")
+    .data(brasil.features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("class", "estado")
+    .on("click", function(event, d) {
+      const estado = d.properties.name;
+      const bandeira = estadoBandeiras[estado];
+      
+      document.getElementById("estado-nome").textContent = estado;
+      document.getElementById("flag").src = bandeira;
+      document.getElementById("flag").alt = `Bandeira de ${estado}`;
+
+      const infoBox = document.getElementById("info-box");
+      infoBox.style.display = "block";
+      
+      // Posiciona o card próximo ao clique do mouse
+      const mouseX = event.pageX;
+      const mouseY = event.pageY;
+      const boxWidth = infoBox.offsetWidth;
+      const boxHeight = infoBox.offsetHeight;
+      
+      // Ajusta a posição para evitar que o card saia da tela
+      let left = mouseX + 20;
+      let top = mouseY - boxHeight/2;
+      
+      if (left + boxWidth > window.innerWidth) {
+        left = mouseX - boxWidth - 20;
+      }
+      if (top + boxHeight > window.innerHeight) {
+        top = window.innerHeight - boxHeight - 20;
+      }
+      if (top < 20) {
+        top = 20;
+      }
+      
+      infoBox.style.left = left + "px";
+      infoBox.style.top = top + "px";
+    });
+
+  // Zoom e arraste
+  const zoom = d3.zoom()
+    .scaleExtent([1, 8])
+    .on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    });
+
+  svg.call(zoom);
+
+  // Remove a mensagem de carregamento
+  d3.select(".loading").remove();
+});
+
+// Ajusta o tamanho do mapa quando a janela é redimensionada
+window.addEventListener('resize', function() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  
+  svg.attr("width", width).attr("height", height);
+  projection
+    .scale(width)
+    .translate([width / 2, height / 2]);
+  
+  g.selectAll("path").attr("d", path);
+});
+</script>
+</body>
+</html>
