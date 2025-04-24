@@ -29,13 +29,13 @@
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
+    git clone [https://github.com/carlospaivaneto/MapaBandeira.git](https://github.com/carlospaivaneto/MapaBandeira.git)
     ```
     *(Substitua `seu-usuario/seu-repositorio` pelo link do seu repositório no GitHub)*
 
 2.  **Navegue até a pasta do projeto:**
     ```bash
-    cd seu-repositorio
+    cd MapaBandeira
     ```
 
 3.  **Abra o arquivo `index.html` no seu navegador web.**
