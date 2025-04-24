@@ -64,3 +64,12 @@
 
 ## 📂 Estrutura de Arquivos
 
+seu-repositorio/
+├── index.html          # Arquivo HTML principal
+├── style.css           # Arquivo CSS (opcional, estilos inline no HTML)
+├── script.js           # Arquivo JavaScript (opcional, scripts inline no HTML)
+├── imagens/            # Pasta para imagens (screenshots, preview, etc.)
+│   ├── mapa_brasil_preview.gif
+│   ├── screenshot_mapa_geral.png
+│   └── screenshot_estado_info.png
+└── README.md           # Este arquivo
