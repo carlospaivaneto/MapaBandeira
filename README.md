@@ -29,7 +29,7 @@
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/carlospaivaneto/MapaBandeira.git](https://github.com/carlospaivaneto/MapaBandeira.git)
+    git clone https://github.com/carlospaivaneto/MapaBandeira.git
     ```
     *(Substitua `seu-usuario/seu-repositorio` pelo link do seu repositório no GitHub)*
 
